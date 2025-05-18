@@ -1,0 +1,45 @@
+/* reset */
+
+h1,h2,h3,h4,h5,h6 {
+	margin: 0;
+	padding: 0;
+}
+
+/* real css */
+
+.flex-wrapper {
+	display: flex;
+	height: 100%;
+	width: 50%;
+}
+
+.nav-sidebar {
+	width: 100%;
+	height: 100vh;
+	order: 1;
+	padding: 1em;
+	background-color: lavender;
+	flex: 1 0 15%;
+}
+
+.nav-sidebar ul {
+	padding: 0;
+	list-style-type: none;
+}
+
+.main-content {
+	width: 100%;
+	order: 2;
+	padding: 0 1em;
+	overflow-y: auto;
+}
+
+.main-content article {
+	padding: 1em 0;
+}
+
+.main-content header {
+	text-align: center;
+	padding: 1em;
+	background: lightblue;
+}

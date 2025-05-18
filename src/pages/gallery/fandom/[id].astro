@@ -1,0 +1,59 @@
+---
+// ms boba i'm so sorry
+
+import { getCollection, getEntries } from "astro:content";
+import { Image } from "astro:assets";
+
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Icon from "../../../components/Icon.astro";
+
+import { getIconImages, getIconSet } from "../../../utils/icons";
+
+export async function getStaticPaths() {
+	const icons = await getCollection("icons");
+
+	const paths = Object.values(icons).map((icon) => {
+		return {
+			params: {
+				id: icon.id,
+			},
+		props: {
+			icon,
+		},
+	};
+});
+	return paths;
+}
+
+const { icon, character } = Astro.props;
+
+const images = await getIconImages(icon.id);
+
+// const images = await getIconSet(icon.id);
+
+---
+
+<BaseLayout>
+	<section>
+		<h2>{icon.data.title}</h2>
+		<p>{icon.data.description}</p>
+		<p>click an image to see it full-size.</p>
+		<p><a href="/gallery/">go back</a></p>
+	</section>
+
+	<section>
+
+    <a href="javascript:;" onClick="document.getElementById('grid-click').style.display='block';">show</a>
+
+    <a href="javascript:;" onClick="document.getElementById('grid-click').style.display='none';">hide</a>
+	
+	</section>
+	
+	<div class="image-grid" id="grid-click">
+		{
+			images.map((image) => (
+				<Image src={image} alt="" width="100" loading="lazy" />
+			))
+		}
+	</div>
+</BaseLayout>

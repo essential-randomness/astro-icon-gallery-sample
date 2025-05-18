@@ -1,0 +1,18 @@
+---
+import { Image } from "astro:assets";
+import { getCollection, getEntry } from 'astro:content';
+import type { ImageMetadata } from "astro";
+import { getImage } from "astro:assets";
+
+interface Props {
+    src: string | ImageMetadata;
+    alt: string;
+    character: string;
+}
+
+const { src, alt, character } = Astro.props;
+
+---
+
+<img src={src} alt={alt} character={character} />
+

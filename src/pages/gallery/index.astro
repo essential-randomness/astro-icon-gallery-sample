@@ -1,0 +1,27 @@
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const icons = await getCollection("icons");
+
+---
+
+<BaseLayout>
+	<div class="gallery-grid">
+		{
+			icons.map((item) => (
+			<section class="gallery-grid-sub">
+				<a href={`/gallery/fandom/${item.id}`}>
+					<Image src={item.data.cover} alt={item.data.title} width="100" quality="max">
+				</a>
+				<aside>
+					<p><strong>{item.data.title}</strong></p>
+					<p>{item.data.description}</p>
+				</aside>
+			</section>
+			))
+		}
+	</div>
+</BaseLayout>

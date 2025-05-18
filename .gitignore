@@ -12,6 +12,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# FIGHTING FOR MY LIFE
+
+public/*.json
+src/loaders/*.json
+src/utils/*.json
+src/utils/*.py
+src/content/**/*.json
+
+**/kamen-rider-gotchard.json
 
 # environment variables
 .env

@@ -1,0 +1,38 @@
+---
+import "../styles/main.css";
+
+import Nav from "../components/Nav.astro";
+
+const { pageTitle, headerName } = Astro.props
+---
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+
+	<title>{pageTitle}</title>
+</head>
+
+<body>
+
+<div class="flex-wrapper">
+
+	<Nav />
+
+	<main class="main-content">
+		<header>
+			<h1>{headerName}</h1>
+		</header>
+
+		<article>
+			<slot />
+		</article>
+	</main>
+
+</div>
+
+</body>
