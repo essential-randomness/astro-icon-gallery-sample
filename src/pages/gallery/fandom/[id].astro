@@ -8,52 +8,66 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import Icon from "../../../components/Icon.astro";
 
 import { getIconImages, getIconSet } from "../../../utils/icons";
+import path from "path";
 
 export async function getStaticPaths() {
-	const icons = await getCollection("icons");
+  const icons = await getCollection("icons");
 
-	const paths = Object.values(icons).map((icon) => {
-		return {
-			params: {
-				id: icon.id,
-			},
-		props: {
-			icon,
-		},
-	};
-});
-	return paths;
+  const paths = Object.values(icons).map((icon) => {
+    return {
+      params: {
+        id: icon.id,
+      },
+      props: {
+        icon,
+      },
+    };
+  });
+  return paths;
 }
 
 const { icon, character } = Astro.props;
+if (icon.filePath == null) {
+  throw "we require a file path";
+}
 
-const images = await getIconImages(icon.id);
+// const images = await getIconImages(icon.id);
 
-// const images = await getIconSet(icon.id);
-
+const images = await getIconSet(icon.filePath);
 ---
 
 <BaseLayout>
-	<section>
-		<h2>{icon.data.title}</h2>
-		<p>{icon.data.description}</p>
-		<p>click an image to see it full-size.</p>
-		<p><a href="/gallery/">go back</a></p>
-	</section>
+  <section>
+    <h2>{icon.data.title}</h2>
+    <p>{icon.data.description}</p>
+    <p>click an image to see it full-size.</p>
+    <p><a href="/gallery/">go back</a></p>
+  </section>
 
-	<section>
+  <section>
+    <a
+      href="javascript:;"
+      onClick="document.getElementById('grid-click').style.display='block';"
+      >show</a
+    >
 
-    <a href="javascript:;" onClick="document.getElementById('grid-click').style.display='block';">show</a>
+    <a
+      href="javascript:;"
+      onClick="document.getElementById('grid-click').style.display='none';"
+      >hide</a
+    >
+  </section>
 
-    <a href="javascript:;" onClick="document.getElementById('grid-click').style.display='none';">hide</a>
-	
-	</section>
-	
-	<div class="image-grid" id="grid-click">
-		{
-			images.map((image) => (
-				<Image src={image} alt="" width="100" loading="lazy" />
-			))
-		}
-	</div>
+  <div class="image-grid" id="grid-click">
+    {
+      Object.keys(images).map((character) => (
+        <section>
+          <h3>{character}</h3>
+          {images[character].map((image) => (
+            <Image src={image} alt="" width="100" loading="lazy" />
+          ))}
+        </section>
+      ))
+    }
+  </div>
 </BaseLayout>
