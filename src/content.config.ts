@@ -16,7 +16,7 @@ async function getAllImagesForFileEntry(entryFilePath: string) {
   const entryPath = path.parse(entryFilePath);
   const galleryPath = path.join(entryPath.dir, entryPath.name);
   const charactersImageFiles = await Array.fromAsync(
-    glob(galleryPath + "/**/*.{jpeg,jpg,png,gif}")
+    glob(galleryPath + "/*/**/*.{jpeg,jpg,png,gif}")
   );
   // Get the relative path of the characterImage, starting from galleryPath
   // These will all start with the character name
@@ -89,7 +89,7 @@ async function withImagesSchema<T extends z.AnyZodObject>(
 ) {
   return (context: SchemaContext) => {
     const schema = schemaFunction(context);
-    const zodBase = z.object({
+    const ImagesSchema = z.object({
       images: z.array(
         z.object({
           relativePath: z.string(),
@@ -97,22 +97,24 @@ async function withImagesSchema<T extends z.AnyZodObject>(
         })
       ),
     });
-    zodBase.extend(schema.shape);
+    let augmentedSchema = schema.merge(ImagesSchema) as T & ImagesSchema;
     if (transformFunction) {
-      zodBase.transform((obj) => {
+      return augmentedSchema.transform((obj) => {
         transformFunction(
           obj as unknown as z.infer<T> & ImagesSchema,
           obj.images
         );
+
+        return obj;
       });
     }
-    return schema as T & ImagesSchema;
+    return augmentedSchema;
   };
 }
 function withImages(loader: Loader) {
   const oldLoad = loader.load;
   loader.load = async (context: LoaderContext) => {
-    await oldLoad(context);
+    await oldLoad({ ...context, parseData: async (data) => data.data });
     await Promise.all(
       context.store.values().map(async (value) => {
         const loadedPromise = Promise.withResolvers();
@@ -184,11 +186,13 @@ const icons = defineCollection({
       z.object({
         title: z.string(),
         description: z.string(),
-        cover: image().optional(),
+        // cover: image().optional(),
         characters: z.string().array().default([]),
       }),
     (object, images) => {
-      console.log(object);
+      //   console.log(object);
+      console.log("transform");
+      console.log(images.map((img) => img.relativePath.split("/")[0]));
       object["characters"] = Array.from(
         new Set(images.map((img) => img.relativePath.split("/")[0]))
       );

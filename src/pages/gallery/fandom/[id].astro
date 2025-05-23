@@ -59,9 +59,11 @@ const { icon, character } = Astro.props;
       icon.data.characters.map((character) => (
         <section>
           <h3>{character}</h3>
-          {/* {character.icons.map((image) => (
-            <Image src={image} alt="" width="100" loading="lazy" />
-          ))} */}
+          {icon.data.images
+            .filter(({ relativePath }) => relativePath.startsWith(character))
+            .map((image) => (
+              <Image src={image.image} alt="" width="100" loading="lazy" />
+            ))}
         </section>
       ))
     }
