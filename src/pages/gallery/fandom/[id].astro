@@ -27,17 +27,11 @@ export async function getStaticPaths() {
 }
 
 const { icon, character } = Astro.props;
-if (icon.filePath == null) {
-  throw "we require a file path";
-}
-
-// const images = await getIconImages(icon.id);
-
-const images = await getIconSet(icon.filePath);
 ---
 
 <BaseLayout>
   <section>
+    z
     <h2>{icon.data.title}</h2>
     <p>{icon.data.description}</p>
     <p>click an image to see it full-size.</p>
@@ -60,10 +54,10 @@ const images = await getIconSet(icon.filePath);
 
   <div class="image-grid" id="grid-click">
     {
-      Object.keys(images).map((character) => (
+      icon.data.characters.map((character) => (
         <section>
-          <h3>{character}</h3>
-          {images[character].map((image) => (
+          <h3>{character.name}</h3>
+          {character.icons.map((image) => (
             <Image src={image} alt="" width="100" loading="lazy" />
           ))}
         </section>
