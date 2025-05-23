@@ -83,7 +83,7 @@ type ImagesSchema = z.ZodObject<{
 async function withImagesSchema<T extends z.AnyZodObject>(
   schemaFunction: (_: SchemaContext) => T,
   transformFunction?: (
-    obj: z.infer<T> & ImagesSchema,
+    obj: z.infer<T> & z.infer<ImagesSchema>,
     images: z.infer<ImagesSchema>["images"]
   ) => void
 ) {
@@ -99,16 +99,18 @@ async function withImagesSchema<T extends z.AnyZodObject>(
     });
     let augmentedSchema = schema.merge(ImagesSchema) as T & ImagesSchema;
     if (transformFunction) {
-      return augmentedSchema.transform((obj) => {
-        transformFunction(
-          obj as unknown as z.infer<T> & ImagesSchema,
-          obj.images
-        );
+      return augmentedSchema.transform<z.infer<T> & z.infer<ImagesSchema>>(
+        (obj) => {
+          transformFunction(
+            obj as z.infer<T> & z.infer<ImagesSchema>,
+            obj.images
+          );
 
-        return obj;
-      });
+          return obj as z.infer<T> & z.infer<ImagesSchema>;
+        }
+      );
     }
-    return augmentedSchema;
+    return augmentedSchema as typeof augmentedSchema & {};
   };
 }
 function withImages(loader: Loader) {
