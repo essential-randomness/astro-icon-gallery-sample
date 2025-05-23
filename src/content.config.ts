@@ -1,12 +1,41 @@
 import { defineCollection, z } from "astro:content";
-// import { glob, file } from "astro/loaders";
+import { glob as astroGlobLoader, file } from "astro/loaders";
 import { glob, readFile } from "node:fs/promises";
 import { parse } from "yaml";
 
 import { picsLoader } from "./loaders/pics";
 import path from "node:path";
 
-async function getCharactersAndImages(entryFilePath: string) {
+// A loader that is exactly the loader passed in, but also has a
+// `images` property which loads all the images in the "gallery path"
+const loaderWithImages = withImageLoader(astroGlobLoader);
+defineCollection({
+  // give it the same thing as the astro loader does
+  loader: loaderWithImages("/src/gallery/**"),
+  schema: ({ image }) =>
+    withLoadedImages(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        cover: image().optional(),
+        characters: z
+          .array(
+            z.object({
+              name: z.string(),
+              icons: z.array(image()),
+            })
+          )
+          .default([]),
+      }),
+      (obj, images) => {
+        // any code to go from `obj` to the schema you want to have
+        // given the images
+        obj[characters] = getImageByCharacter(images);
+      }
+    ),
+});
+
+async function getAllImagesForFileEntry(entryFilePath: string) {
   const entryPath = path.parse(entryFilePath);
   const galleryPath = path.join(entryPath.dir, entryPath.name);
   const charactersImageFiles = await Array.fromAsync(
@@ -17,23 +46,10 @@ async function getCharactersAndImages(entryFilePath: string) {
   const imagePathsByCharacter = charactersImageFiles.map(
     (charactersImageFile) => path.relative(galleryPath, charactersImageFile)
   );
-  const characterNames = Array.from(
-    new Set(
-      imagePathsByCharacter
-        .map((imageFilePath) => {
-          // Since the folder names inside the gallery are the character names, the
-          // character name will be the first folder in the returned paths.
-          return imageFilePath.substring(0, imageFilePath.indexOf("/"));
-        })
-        .filter((name) => !!name)
-    )
-  );
 
-  return characterNames.map((character) => ({
-    name: character,
-    icons: imagePathsByCharacter
-      .filter((src) => src.startsWith(character))
-      .map((relativePath) => `/@fs` + path.resolve(galleryPath, relativePath)),
+  return imagePathsByCharacter.map((imagePath) => ({
+    relativePath: imagePath,
+    image: `/@fs` + path.resolve(galleryPath, imagePath),
   }));
 }
 
@@ -54,7 +70,7 @@ const icons = defineCollection({
           cover: parsedYaml.cover
             ? `/@fs` + path.resolve("src/content/gallery/", parsedYaml.cover)
             : undefined,
-          characters: await getCharactersAndImages(charactersFile),
+          images: await getAllImagesForFileEntry(charactersFile),
         };
       })
     );
@@ -62,19 +78,55 @@ const icons = defineCollection({
     return characterData;
   },
   schema: ({ image }) =>
-    z.object({
-      title: z.string(),
-      description: z.string(),
-      cover: image().optional(),
-      characters: z
-        .array(
-          z.object({
-            name: z.string(),
-            icons: z.array(image()),
-          })
-        )
-        .default([]),
-    }),
+    z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        cover: image().optional(),
+        images: z
+          .array(
+            z.object({
+              relativePath: z.string(),
+              image: image(),
+            })
+          )
+          .default([]),
+        characters: z
+          .array(
+            z.object({
+              name: z.string(),
+              icons: z.array(image()),
+            })
+          )
+          .default([]),
+      })
+      .transform((obj) => {
+        const characterNames = Array.from(
+          new Set(
+            obj.images
+              .map((imageFilePath) => {
+                // Since the folder names inside the gallery are the character names, the
+                // character name will be the first folder in the returned paths.
+                return imageFilePath.relativePath.substring(
+                  0,
+                  imageFilePath.relativePath.indexOf("/")
+                );
+              })
+              .filter((name) => !!name)
+          )
+        );
+
+        const charactersIcons = characterNames.map((character) => ({
+          name: character,
+          icons: obj.images
+            .filter((src) => src.relativePath.startsWith(character))
+            .map((image) => image.image),
+        }));
+
+        obj["characters"] = charactersIcons;
+
+        return obj;
+      }),
 });
 
 export const collections = { icons };
