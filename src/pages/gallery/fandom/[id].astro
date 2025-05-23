@@ -14,6 +14,8 @@ export async function getStaticPaths() {
   const icons = await getCollection("icons");
 
   const paths = Object.values(icons).map((icon) => {
+    console.log("****");
+    console.dir(icon.data);
     return {
       params: {
         id: icon.id,
@@ -56,10 +58,10 @@ const { icon, character } = Astro.props;
     {
       icon.data.characters.map((character) => (
         <section>
-          <h3>{character.name}</h3>
-          {character.icons.map((image) => (
+          <h3>{character}</h3>
+          {/* {character.icons.map((image) => (
             <Image src={image} alt="" width="100" loading="lazy" />
-          ))}
+          ))} */}
         </section>
       ))
     }
